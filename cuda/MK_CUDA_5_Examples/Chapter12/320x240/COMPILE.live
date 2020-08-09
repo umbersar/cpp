@@ -1,0 +1,7 @@
+#/bin/bash
+DIR=livestream
+SDK_PATH=/usr/local/cuda-5.0/samples
+SDK_LIB0=$SDK_PATH/../lib64
+echo $SDK_PATH
+nvcc -arch=sm_20 -O3 -L $SDK_LIB0 -I $SDK_PATH/common/inc simpleGLmain.cpp simpleVBO.cpp $DIR/callbacksVBO.cpp $DIR/kernelVBO.cu tcpserver.cpp -lglut -lGLEW -lGLU -lGL -o testLive
+#nvcc -O3 -L $SDK_LIB0  -I $SDK_PATH/C/common/inc simpleGLmain.cpp simpleVBO.cpp $DIR/callbacksVBO.cpp $DIR/kernelVBO.cu tcpserver.cpp -lglut -lGLEW -lGLU -lcutil_x86_64 -lGL -o testLive

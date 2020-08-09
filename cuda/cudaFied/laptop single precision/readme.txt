@@ -1,0 +1,3 @@
+1)double not supported..So code is using floats. I think the python float is mapped to c double...so running cuda on my laptopm to integrate with python won't work as my laptop is only single precision in GPU.
+2) to use printf in device functions(GPU functions or methods),  set "code generation" property of "Device" under "CUDA C/C++" from compute_10,sm_10 to compute_20, sm_20
+(VS2010 I changed Project->{Project Name} Properties->CUDA C/C++ ->Device -> [Code Generation]: compute_10, sm_10 to compute_20, sm_20 and it worked)

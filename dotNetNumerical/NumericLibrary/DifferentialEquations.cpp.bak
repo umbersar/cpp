@@ -1,0 +1,252 @@
+﻿#include "stdafx.h"
+#include "NumericLibrary.h"
+
+//fᵢ(x) = fᵢ₋₁(x) + f'ᵢ₋₁(x)*h. Given initial values of both x and y and the differential equation, we can select a small h
+//and keep iterating over the equation to plot the function as well as find the value of y at a particualar point
+
+//taylor series is f(x) = f(x0) + (f'(x0)/1!)(x- x0) + (f''(x0)/2!) (x- x0)^2 + (f'''(0)/3!) (x- x0)^3 + ...
+//truncating it to 2 terms we get the approximate series.
+//f(x) ≈ f(x0) + (f'(x0)/1!)(x- x0)
+//Now for eulers method, we are given the x0 and f(x0) and the derivative dy/dx equation(for eg. x+y). 
+//We have to find y or f(x) for a particular x. So here we have to choose a small step h such that h=x-x0. Remember the difference 
+//between step size h and delta. If x0=4 and the desired f(x)=23, then h!=23-4 but a small increment in x such as h=5-4.
+//For a given h and x0, we can now calculate the f(x) by plugging the values of x and y at this point into the derivate equation.
+//And we can keep repeating this step until we reach the desired f(x). Since we are iterating till we reach the desired x and
+//its corresponding y, we can also write the equation in a iterative manner: fᵢ(x) = fᵢ₋₁(x) + f'ᵢ₋₁(x)*h
+
+//The step size should be very small to get a more accurate approximation of the function.The smaller the step size, more would 
+//be the number of steps required to get an answer at a given point or to draw the curve till a given point.This large number of 
+//steps entails a high computational cost.For this reason, people usually employ alternative, higher-order approximation methods 
+//such as Runge–Kutta methods or linear multistep methods, especially if a high accuracy is desired.The step size should be very small 
+//to get a more accurate approximation of the function. Also, as the step size becomes smaller and smaller, you start inducing 
+//error due to inability of the computer to represent them very small numbers. 
+//How to improve eulers method ? To improve the solution we could either use smaller steps or use higher order approximation(not higher 
+//order derivative) schemes which take into account the slopes at midway points as well for prediction so that for  large step, we are not way off the mark.
+
+//eulers method and runge kutta method are initial value problem solvers involving differenetial equations.
+
+double EulersMethod(double x0, double y0, double x, double(*f)(double, double)) {
+	double h = sqrt(DBL_EPSILON);
+	double diff = x - x0;
+
+	// value of h has to be choosen to be small and should near perfectly be a multiple of diff
+	int nSteps = abs(diff / h);
+	//as explained here http://stackoverflow.com/q/39966190/364084, there is a bug in fmod.So instead do what its doco says it will do.
+	//double rem = fmod(diff, h);// remainder(diff, h);
+	double rem = diff - static_cast<int>(diff / h)*h;
+
+	//rem already has the sign of diff. use that sign for h as well
+	h = copysign(h, diff);
+
+	double yi;
+
+	for (int i = 0; i < nSteps; i++) {
+		yi = y0 + f(x0, y0)*h;
+
+		x0 = x0 + h;
+		y0 = yi;
+	}
+
+	if (rem != 0.0) {
+		yi = y0 + f(x0, y0)*rem;
+
+		x0 = x0 + rem;
+		if (abs(x0 - x) >= .0000001) {
+			//should never get here
+			throw NotComputableException("Solution for x=%d could not be computed. Change the step size to a more appropriate value.");
+		}
+		y0 = yi;
+	}
+
+	return yi;
+}
+
+double converge(double x0, double y0, double(*f)(double, double), double h) {
+	//this is the predictor equation
+	double oldY = y0 + f(x0, y0)  * h;
+	double newY;
+
+	//try to converge for a given number of times before giving up
+	int index = 0;
+	bool converged = false;
+	while (index < 10) {
+		//this is the corrector equation
+		//recalculate yi using the mid point of slope as the actual slope value
+		newY = y0 + (f(x0, y0) + f(x0 + h, oldY)) *(1.0 / 2) * h;
+
+		if (abs(oldY - newY) <= .0001) {
+			converged = true;
+			break;
+		}
+		oldY = newY;
+		index++;
+	}
+
+	if (!converged)
+		throw NotComputableException("Eulers modified method did not converge.");
+
+	return newY;
+}
+
+//eulers modified method is a type of predictor-corrector method
+//even with a greater step size than eulers method, this gives better results.
+//now now since the slope might change rapidly, use the of slope at current point to calculate a y value
+//and compare that y value with the one calculated using average of slope calculated at current point and the next point 
+//Keep doing it till the y value converges for the next point and then move ahead to the next step.
+double EulersMethodModified(double x0, double y0, double x, double(*f)(double, double)) {
+	double h = .1;
+	double diff = x - x0;
+
+	// value of h has to be choosen to be small and should near perfectly be a multiple of diff
+	int nSteps = abs(diff / h);
+	//as explained here http://stackoverflow.com/q/39966190/364084, there is a bug in fmod.So instead do what its doco says it will do.
+	//double rem = fmodl(diff, h);//rem = remainderl(diff, h);
+	double rem = diff - static_cast<int>(diff / h)*h;
+
+	//rem already has the sign of diff. use that sign for h as well
+	h = copysign(h, diff);
+
+	double yi;
+
+	for (int i = 0; i < nSteps; i++) {
+		//x0 and y0 are initial values for each step in the iteration with yi being the solution at the end of a particular step/iteration.
+		y0 = converge(x0, y0, f, h);
+		x0 = x0 + h;
+		yi = y0;
+	}
+
+	if (rem != 0.0) {
+		yi = converge(x0, y0, f, rem);
+	}
+
+	return yi;
+}
+
+//runge kutta is more accurate and requires calculating the function only at some function points.
+double RungeKutta(double x0, double y0, double x, double(*f)(double, double)) {
+	double h = .1;
+	double diff = x - x0;
+
+	// value of h has to be choosen to be small and should near perfectly be a multiple of diff
+	int nSteps = abs(diff / h);
+	//as explained here http://stackoverflow.com/q/39966190/364084, there is a bug in fmod.So instead do what its doco says it will do.
+	//double rem = fmod(diff, h);// remainder(diff, h);
+	double rem = diff - static_cast<int>(diff / h)*h;
+
+	//rem already has the sign of diff. use that sign for h as well
+	h = copysign(h, diff);
+
+	double yi;
+	for (int i = 0; i < nSteps; i++) {
+
+		double k1 = h*f(x0, y0);
+		double k2 = h*f(x0 + (1.0 / 2)*h, y0 + (1.0 / 2)*k1);
+		double k3 = h*f(x0 + (1.0 / 2)*h, y0 + (1.0 / 2)*k2);
+		double k4 = h*f(x0 + h, y0 + k3);
+
+		double k = (1.0 / 6)*(k1 + 2 * k2 + 2 * k3 + k4);
+
+		yi = y0 + k;
+
+		x0 = x0 + h;
+		y0 = yi;
+	}
+
+	if (rem != 0.0) {
+
+		double k1 = h*f(x0, y0);
+		double k2 = h*f(x0 + (1.0 / 2)*h, y0 + (1.0 / 2)*k1);
+		double k3 = h*f(x0 + (1.0 / 2)*h, y0 + (1.0 / 2)*k2);
+		double k4 = h*f(x0 + h, y0 + k3);
+
+		double k = (1.0 / 6)*(k1 + 2 * k2 + 2 * k3 + k4);
+		yi = y0 + k;
+
+		x0 = x0 + rem;
+		if (abs(x0 - x) >= .0000001) {
+			//should never get here
+			throw NotComputableException("Solution for x=%d could not be computed. Change the step size to a more appropriate value.");
+		}
+		y0 = yi;
+	}
+	return yi;
+}
+
+//I might make the runge kutta method more like a predictor corrector method where for each step, I compare the value by first 
+//taking a particular h and then by taking h/2. If the result is not same I again use (h/2)/2 until we get similar values.
+double RungeKuttaModified(double x0, double y0, double x, double(*f)(double, double)) {
+	throw NotImplementedException("RungeKuttaModified not implemented as yet.");
+}
+
+//this should be the RungeKutta method but for keeping things easy for the reader of code, I have it in a separate method
+//again i could use some predictor corrector logic by checking for values computed using h and h/2
+double RungeKuttaForTwoDifferentialEquations(double x0, double y0, double z0, double x, double(*f[])(double, double, double)) {
+	double h = .001;
+	double diff = x - x0;
+
+	// value of h has to be choosen to be small and should near perfectly be a multiple of diff
+	int nSteps = abs(diff / h);
+	//as explained here http://stackoverflow.com/q/39966190/364084, there is a bug in fmod.So instead do what its doco says it will do.
+	//double rem = fmod(diff, h);// remainder(diff, h);
+	double rem = diff - static_cast<int>(diff / h)*h;
+
+	//rem already has the sign of diff. use that sign for h as well
+	h = copysign(h, diff);
+
+	double yi;
+	double zi;
+	for (int i = 0; i < nSteps; i++) {
+
+		double k1FirstEquation = h*f[0](x0, y0, z0);
+		double k1SecondEquation = h*f[1](x0, y0, z0);
+
+		double k2FirstEquation = h*f[0](x0 + (1.0 / 2)*h, y0 + (1.0 / 2)*k1FirstEquation, z0 + (1.0 / 2)*k1SecondEquation);
+		double k2SecondEquation = h*f[1](x0 + (1.0 / 2)*h, y0 + (1.0 / 2)*k1FirstEquation, z0 + (1.0 / 2)*k1SecondEquation);
+
+		double k3FirstEquation = h*f[0](x0 + (1.0 / 2)*h, y0 + (1.0 / 2)*k2FirstEquation, z0 + (1.0 / 2)*k2SecondEquation);
+		double k3SecondEquation = h*f[1](x0 + (1.0 / 2)*h, y0 + (1.0 / 2)*k2FirstEquation, z0 + (1.0 / 2)*k2SecondEquation);
+
+		double k4FirstEquation = h*f[0](x0 + h, y0 + k3FirstEquation, z0 + k3SecondEquation);
+		double k4SecondEquation = h*f[1](x0 + h, y0 + k3FirstEquation, z0 + k3SecondEquation);
+
+		double kFirstEquation = (1.0 / 6)*(k1FirstEquation + 2 * k2FirstEquation + 2 * k3FirstEquation + k4FirstEquation);
+		double kSecondEquation = (1.0 / 6)*(k1SecondEquation + 2 * k2SecondEquation + 2 * k3SecondEquation + k4SecondEquation);
+
+		yi = y0 + kFirstEquation;
+		zi = z0 + kSecondEquation;
+
+		x0 = x0 + h;
+		y0 = yi;
+		z0 = zi;
+	}
+
+	if (rem != 0.0) {
+		double k1FirstEquation = rem*f[0](x0, y0, z0);
+		double k1SecondEquation = rem*f[1](x0, y0, z0);
+
+		double k2FirstEquation = rem*f[0](x0 + (1.0 / 2)*h, y0 + (1.0 / 2)*k1FirstEquation, z0 + (1.0 / 2)*k1SecondEquation);
+		double k2SecondEquation = rem*f[1](x0 + (1.0 / 2)*h, y0 + (1.0 / 2)*k1FirstEquation, z0 + (1.0 / 2)*k1SecondEquation);
+
+		double k3FirstEquation = rem*f[0](x0 + (1.0 / 2)*h, y0 + (1.0 / 2)*k2FirstEquation, z0 + (1.0 / 2)*k2SecondEquation);
+		double k3SecondEquation = rem*f[1](x0 + (1.0 / 2)*h, y0 + (1.0 / 2)*k2FirstEquation, z0 + (1.0 / 2)*k2SecondEquation);
+
+		double k4FirstEquation = rem*f[0](x0 + h, y0 + k3FirstEquation, z0 + k3SecondEquation);
+		double k4SecondEquation = rem*f[1](x0 + h, y0 + k3FirstEquation, z0 + k3SecondEquation);
+
+		double kFirstEquation = (1.0 / 6)*(k1FirstEquation + 2 * k2FirstEquation + 2 * k3FirstEquation + k4FirstEquation);
+		double kSecondEquation = (1.0 / 6)*(k1SecondEquation + 2 * k2SecondEquation + 2 * k3SecondEquation + k4SecondEquation);
+
+		yi = y0 + kFirstEquation;
+		zi = z0 + kSecondEquation;
+
+		x0 = x0 + rem;
+		if (abs(x0 - x) >= .0000001) {
+			//should never get here
+			throw NotComputableException("Solution for x=%d could not be computed. Change the step size to a more appropriate value.");
+		}
+		y0 = yi;
+		z0 = zi;
+	}
+
+	return yi;
+}

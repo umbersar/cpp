@@ -1,0 +1,86 @@
+0) declaration vs definition. In c, headers have function declaration whereas function definition would be in '.c' files. also global variables can be used 
+using extern declaration.
+
+1) #include <iostream> vs #include <stdio.h> WE are not using the .h suffix with header files but still iostream is a header file containing declarations.
+
+2) << and >> operators in cpp look and behave much like unix redirection operators < and >.
+
+3) pointers in c vs reference in c++. Well reference in just an alias/synonym. There are scenarios where to conserve memory, we do not want to make copies of 
+variables being juggled around in our program. Like when we pass arguments to functions. We can append a const to the formal arguments(parameters) to 
+make sure the function does not changes the value of the parameters(and hence the arguments in turn). Pointers in C++ still are needed like for dynamicall allocated memory using new(can use 
+malloc as well). Pointer can also be used to pass by reference but the syntax is a bit cumbersome.
+
+& is the address operator in pointer lands and &  is also used to define reference types.
+
+4) A ptr to a struct or class can also use the operator -> to access members. So (*ptr).Name can be written as ptr->Name.
+
+4.5) iterator behaves like an pointer.
+
+4.6) to get an iterator out of an container, use a iterator adaptor like back_inserter(word_list) to yield an output iterator which can be used to provide equivalent operatins to word_list.push_back().
+word_list.begin() and word_list.end() would also have given iterators on the word_list but we could not have used them to make entries to word_list as they are not output iterators.
+
+5) if we can increment an iterator of a list by doing it++, then why can't we add a bigger number it+3. I understand that list is alinked list
+and so it the elements are not kept sequentially in memory but can't we walk along the list? we can do it+3 of it is an iterator of vector
+which is basically an array and thus the elements are arranged sequentially in memory.
+
+6) list(linked list) are optimized for fast insertion and deletion.
+
+7) #include <iostream> is equivalent to adding a reference(reference to a dll) in c#. After we add a reference, we have write 'using' statements to to make types in the namespace avaiable in the code. Otherwise we would have to write fully qualified names to refer to types.
+Similarly, here in c++, I would have to either write 'using std::cout;' or use the fully qualified name whereever i want to use cout.
+We could also have written 'using namespace std;' and that would have made all the types in the namespace available but this is advised against as if we include 2 namepsaces, there might be some conflicting type names inside them and using the conflicting types would not give an error??
+whereas in c# if a type conflicts in 2 namespaces, compiler asks the user to explicity specify which type to use??
+
+8) scope operator :: is used both namepspaces as well as class members. For example accessing a static member of a class (shape::count) or defining a class member outside the the class definition.
+It is also used without a prefix inside class members to refer to functions (and variables?) that are not members of any class(e.g. ::grade(x,y)) and are global functions.
+In working with namespaces, it is used as 'using std::cout;'
+in c#, static members are accessed by '.', the same way as instance members are.
+
+9)shape s = new shape('red'); creating an object in c#. In c++, equivalent would be shape s('red');
+anonymous object in c#: new shape('red'). Anonymous object in c++ shape('red')
+In c++, new is only used as a c++ equivalent of malloc and reserves memory and returns pointer to memory. So shape *Obj = new shape;
+
+Also, when we just write 'shape s;' in c# we have declared a object variable but not reserved any memory as yet for that object. So s is null.
+How do we do that in c++. I think in c++ doing so defines a object by reserving memory for it. So the object has been instantiated using the default constructor. 
+so is 'shape s;' actually equivalent to 'shape s();' in c++. Now if the class does not have a default constructor, compiler will create one for us and that would be used to
+initialize the data members either using default-initialization(for local object variables) or valu-initialization(for objects that are part of a container...container elements)
+default initialization means memory is reserved the for data members but they are not initialized with a value. So they hold garbage.
+value initialization means  memory is reserved the for data members and they are initialized with a value. So they do not hold garbage.
+
+10) add const to member function declaration and definition if the data members(state) of that class is not changed by them. const objects of that class of would then
+be able to call those member functions. const objects calling non-const member functions result in compiler error.
+
+11) in c, both functions and variables can be defined as static. A fucntion defined as static is only visible to code inside the file in which it is defined. For variables, there are 2 cases:
+if a variable is defined outisde of a function in a code file as sort of a global variable, then defining it as static restricts its scope to that code file only and is only visible in it.
+But if a variable is declared as static inside a function, then the variable is initialized once and will persist its state even if the function finishes so that when the function is called next time, the variable is not
+initialized again and will have its value from the last run.
+
+12) class members can be data members or member functions.
+
+13) In c++, the only difference between struct and class is that by default the members of struct are public whereas the by default the members of class are private.
+
+14) in both c  and c++, a pointer variable can be initialized to 0 which is called the null pointer. 0 is the only interger value that can be converted to a pointer type.
+
+15) iterators are just like pointers. So all the STL methods that work on iterators can be passed pointers as well. The end iterator is always one past the end of the container.
+
+16 char *ptr can be stored in a std::string.
+
+17) we can change a std::string to c string(char *ptr) by;
+	string s;
+	const char *ptr = s.c_str();
+
+18) name of array, name of function and string literal return base address.
+
+19) char **ptr can be written as char *prt[] only in parameter lists
+
+20) if you are managing memory resources in your class(new,malloc,allocator), then your class needs a destructor as well as a copy
+constructor and the overloaded assignment operator. Otherwise compiler will create these for you and that might not be what you want(issues like deep vs shallow copy etc.).
+
+21) binary overloaded operators should generally be non-member functions as they do not affect the state of the 
+either operand and they allow automatic conversions to happen on either operands(using suitable constructors(implicit conversions)). 
+
+22) implicit conversions use constructors with a single argument. We can mark such constructors explicit to prevent conversions.
+
+==============================================================
+Effective C++ in cpp file named EffectiveCPP.cpp
+
+

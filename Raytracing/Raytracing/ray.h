@@ -12,6 +12,6 @@ public:
 
 	point3 origin() const;
 	point3 direction() const;
-	point3 at(double t);
+	point3 at(double t) const;
 };
 

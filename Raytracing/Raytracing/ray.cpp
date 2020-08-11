@@ -8,6 +8,6 @@ point3 ray::origin() const { return orig; }
 
 point3 ray::direction() const { return dir; }
 
-point3 ray::at(double t) {
+point3 ray::at(double t) const{
 	return orig + t * dir;
 }

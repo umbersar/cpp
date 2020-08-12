@@ -30,6 +30,7 @@ double hit_sphere(const point3& center, double radius, const ray& r) {
 color ray_color(const ray& r, const hittable& world) {
     hit_record rec;
     if (world.hit(r, 0, infinity, rec)) {
+        point3 target = rec.p + rec.normal + random_in_unit_sphere();
         return 0.5 * (rec.normal + color(1, 1, 1));
     }
     vec3 unit_direction = unit_vector(r.direction());

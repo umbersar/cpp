@@ -363,7 +363,9 @@ double d1 = (double)x / y;//c style cast
 
 //Effective Modern C++
 
-//1) parameters are lvalues bu the arguments with which they are initialized may be rvalues or lvalues
+//1) parameters are lvalues bu the arguments with which they are initialized may be rvalues or lvalues.
+//another way to remember is that lvalue is a value which has a name(variable name) but rvalue is not named
+
 void someFunc(widget w);
 widget wid;
 someFunc(wid);//in this call to func w is a copy of wid that is created via copy construction

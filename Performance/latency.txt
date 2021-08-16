@@ -1,4 +1,8 @@
-﻿From: http://norvig.com/21-days.html
+Some ideas: https://github.com/LucaCanali/Miscellaneous/blob/master/Spark_Notes/Tools_Linux_Memory_Perf_Measure.md
+
+==============================================================================================================================
+
+From: http://norvig.com/21-days.html
 
 Approximate timing for various operations on a typical PC:
 execute typical instruction	1/1,000,000,000 sec = 1 nanosec

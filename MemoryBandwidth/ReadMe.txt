@@ -1,0 +1,1 @@
+code from https://www.forrestthewoods.com/blog/memory-bandwidth-napkin-math/
